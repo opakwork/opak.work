@@ -1,10 +1,157 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8" />
-  <title>opak.work admin</title>
+<meta charset="UTF-8">
+<title>opak.work admin</title>
+
+<style>
+
+body{
+font-family:sans-serif;
+max-width:500px;
+margin:40px auto;
+}
+
+input, textarea{
+width:100%;
+margin-bottom:12px;
+padding:6px;
+}
+
+textarea{
+height:120px;
+white-space:pre-wrap;
+word-wrap:break-word;
+}
+
+button{
+padding:8px 14px;
+}
+
+#panel{
+display:none;
+}
+
+</style>
+
 </head>
+
 <body>
-  <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+
+<div id="login">
+
+<h2>Admin login</h2>
+
+<input type="password" id="password" placeholder="password">
+
+<button onclick="login()">Login</button>
+
+</div>
+
+<div id="panel">
+
+<h2>New blog post</h2>
+
+<form id="blogForm">
+
+Date<br>
+<input type="text" id="date" placeholder="04.03.2026">
+
+PDF link (optional)<br>
+<input type="text" id="pdf">
+
+PDF label (optional)<br>
+<input type="text" id="pdflabel" placeholder="PDF">
+
+Text<br>
+<textarea id="text"></textarea>
+
+<button type="submit">Publish</button>
+
+</form>
+
+</div>
+
+<script>
+
+const PASSWORD="opak4ever"
+
+/* encode token so it isn't visible */
+const TOKEN = atob("PASTE_BASE64_TOKEN")
+
+const REPO="opakwork/opak.work"
+const FILE="blog.html"
+
+function login(){
+
+const pass=document.getElementById("password").value
+
+if(pass===PASSWORD){
+
+document.getElementById("login").style.display="none"
+document.getElementById("panel").style.display="block"
+
+}else{
+
+alert("wrong password")
+
+}
+
+}
+
+document.getElementById("blogForm").onsubmit=async function(e){
+
+e.preventDefault()
+
+const date=document.getElementById("date").value
+const pdf=document.getElementById("pdf").value
+const label=document.getElementById("pdflabel").value || "PDF"
+const text=document.getElementById("text").value
+
+let entry=`<p><strong>${date}</strong></p>\n`
+
+if(pdf.trim()!==""){
+
+entry+=`<p><a href="${pdf}">${label}</a></p>\n`
+
+}
+
+entry+=`<p><em>${text}</em></p>\n<p> </p>\n`
+
+const getFile=await fetch(`https://api.github.com/repos/${REPO}/contents/${FILE}`,{
+headers:{Authorization:`token ${TOKEN}`}
+})
+
+const fileData=await getFile.json()
+
+const content=atob(fileData.content)
+
+const updated=content+"\n"+entry
+
+await fetch(`https://api.github.com/repos/${REPO}/contents/${FILE}`,{
+
+method:"PUT",
+
+headers:{
+Authorization:`token ${TOKEN}`,
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+message:"new blog post",
+content:btoa(updated),
+sha:fileData.sha
+
+})
+
+})
+
+alert("Post published!")
+
+}
+
+</script>
+
 </body>
 </html>
