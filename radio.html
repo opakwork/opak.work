@@ -13,7 +13,6 @@
 		<p><!DOCTYPE html>
 <html>
 <head></p>
-
 <style>
 #rolling-text {
   width: 100%;
@@ -22,9 +21,7 @@
   font-family: sans-serif;
   font-size: 14px;
   color: #0099cc;
-
   position: relative;
-
 }
 
 #rolling-text span {
@@ -43,13 +40,26 @@
 }
 </style>
 
-<p></head></p>
-
-<p><body></p>
-
 <div id="rolling-text">
-    <span>currently happening: the new students are going crazy</span>
+  <span id="announcement"></span>
 </div>
+
+<script>
+fetch('assets/announcement.txt')
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Could not load announcement');
+    }
+    return response.text();
+  })
+  .then(text => {
+    document.getElementById('announcement').textContent =
+      text.trim();
+  })
+  .catch(error => {
+    console.error('Announcement loading failed:', error);
+  });
+</script>
 
 <p></body>
 </html></p>
